@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bana Uygun Olanı Bul — Uyum Rehberi</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="brand"><span class="mark"></span>Uyum Rehberi</a>
+  <nav class="nav-links" style="display:flex;align-items:center;gap:2px;">
+    <a href="one-cikanlar.html">Öne Çıkanlar</a>
+    <a href="top-10.html">Top 10</a>
+    <div class="nav-item">
+      <button class="nav-trigger">Pozisyon Stilleri <span class="chev-down">▾</span></button>
+      <div class="nav-dropdown">
+        <a href="/stil/erkek-uzerde/stil-erkek-uzerde.html">Erkek Üstte</a>
+        <a href="/stil/kadin-uzerde/stil-kadin-uzerde.html">Kadın Üstte</a>
+        <a href="/stil/arkadan/stil-arkadan.html">Arkadan</a>
+        <a href="/stil/oturarak-diz-cokerek/stil-oturarak-diz-cokerek.html">Oturarak &amp; Diz Çökerek</a>
+        <a href="/stil/yan-yana/stil-yan-yana.html">Yan Yana</a>
+        <a href="/stil/ayakta/stil-ayakta.html">Ayakta</a>
+        <a href="/stil/oral/stil-oral.html">Oral</a>
+        <a href="/stil/anal/stil-anal.html">Anal</a>
+      </div>
+    </div>
+    <a href="positions.html">Tüm Pozisyonlar</a>
+    <a href="match.html" class="active">Eşleştir</a>
+  </nav>
+  <div class="nav-right">
+    <button class="nav-search-btn" aria-label="Ara">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="page-wrap">
+  <div class="page-head">
+    <span class="eyebrow">Kişiselleştirilmiş eşleştirme</span>
+    <h1>Bana uygun olanı bul</h1>
+    <p>Aşağıdaki grupları açıp yalnızca senin için önemli olan özellikleri işaretle. İşaretlemediğin özelliklerin sonuca hiçbir etkisi olmaz — yüzdeler yalnızca seçtiğin özelliklere göre hesaplanır.</p>
+  </div>
+
+  <div class="match-layout">
+    <aside class="filter-panel" id="filter-panel">
+      <h2>Özellik grupları</h2>
+      <p>Bir grubun başlığına tıklayarak içindeki özellikleri görebilirsin.</p>
+      <div id="filter-groups"></div>
+      <div class="f-actions">
+        <button class="btn" id="apply-btn">Eşleşmeleri göster</button>
+        <button class="btn ghost" id="reset-btn">Sıfırla</button>
+      </div>
+    </aside>
+
+    <section>
+      <div class="active-count" id="active-filter-count"><span><b>0</b> aktif özellik seçili</span></div>
+      <div id="results"></div>
+    </section>
+  </div>
+</main>
+
+<div class="footnote">Uyum Rehberi — kişisel kullanım için hazırlanmış bir referans aracıdır.</div>
+
+<script src="data.js"></script>
+<script src="app-shared.js"></script>
+<script src="nav.js"></script>
+<script>
+
+function scaleFilterInner(m){
+  return `
+  <div class="f-scale-row">
+    <input type="range" min="1" max="5" step="1" value="3" id="f-${m.key}-val"
+      oninput="document.getElementById('f-${m.key}-out').textContent=this.value">
+    <span class="val" id="f-${m.key}-out">3</span>
+  </div>
+  <div class="f-dir">
+    <label><input type="checkbox" id="f-${m.key}-above"> ve üzeri</label>
+    <label><input type="checkbox" id="f-${m.key}-below"> ve altı</label>
+  </div>`;
+}
+
+function ordinalFilterInner(m){
+  const labels = m.order.map(v => m.key==="experience_level" ? TR.enum.experience_level[v] : (TR.enum[m.key] ? TR.enum[m.key][v] : v));
+  const labelsJs = "[" + labels.map(l => "'" + String(l).replace(/'/g,"\\'") + "'").join(",") + "]";
+  const mid = Math.ceil((m.order.length+1)/2);
+  return `
+  <div class="f-scale-row">
+    <input type="range" min="1" max="${m.order.length}" step="1" value="${mid}" id="f-${m.key}-val"
+      oninput="document.getElementById('f-${m.key}-out').textContent=(${labelsJs})[this.value-1]">
+    <span class="val" id="f-${m.key}-out">${labels[mid-1]}</span>
+  </div>
+  <div class="f-dir">
+    <label><input type="checkbox" id="f-${m.key}-above"> ve üzeri</label>
+    <label><input type="checkbox" id="f-${m.key}-below"> ve altı</label>
+  </div>`;
+}
+
+function boolFilterInner(m){
+  return `
+  <div class="f-options">
+    <div class="f-opt-row"><label class="check"><input type="checkbox" id="f-${m.key}-true"> Evet</label></div>
+    <div class="f-opt-row"><label class="check"><input type="checkbox" id="f-${m.key}-false"> Hayır</label></div>
+  </div>`;
+}
+
+function nominalFilterInner(m){
+  let options, labelFor;
+  if(m.type==="control"){ options=["male","female","shared","self"]; labelFor=(o)=>TR.enum.penetration_control[o]; }
+  else if(m.type==="equipment"){ options=Object.keys(TR.enum.equipment_needed); labelFor=(o)=>TR.enum.equipment_needed[o]; }
+  else { options=Object.keys(TR.enum[m.key]); labelFor=(o)=>TR.enum[m.key][o]; }
+  const rows = options.map(o=>`<div class="f-opt-row"><label class="check"><input type="checkbox" id="f-${m.key}-${o}"> ${labelFor(o)}</label></div>`).join("");
+  return `<div class="f-options">${rows}</div>`;
+}
+
+function fieldInner(m){
+  if(m.type==="scale") return scaleFilterInner(m);
+  if(m.type==="level3" || m.type==="explevel") return ordinalFilterInner(m);
+  if(m.type==="bool") return boolFilterInner(m);
+  return nominalFilterInner(m);
+}
+
+// One collapsible accordion per GROUP (not per field) — keeps the panel short
+// until the person opens the section that matters to them.
+function buildFilterPanel(){
+  const groups = {};
+  const order = [];
+  FIELD_META.forEach(m=>{
+    if(!groups[m.group]){ groups[m.group] = []; order.push(m.group); }
+    groups[m.group].push(m);
+  });
+
+  let html = "";
+  order.forEach(groupName=>{
+    const fields = groups[groupName];
+    const blocks = fields.map(m=>`
+      <div class="field-block">
+        <div class="field-block-title">${TR.fields[m.key]}</div>
+        ${fieldInner(m)}
+      </div>`).join("");
+    html += `
+    <details class="accordion-group">
+      <summary><span>${groupName}<span class="sub-count"> (${fields.length})</span></span><span class="chev"></span></summary>
+      <div class="f-body">${blocks}</div>
+    </details>`;
+  });
+  document.getElementById("filter-groups").innerHTML = html;
+}
+
+buildFilterPanel();
+runMatch();
+
+document.getElementById("apply-btn").addEventListener("click", runMatch);
+document.getElementById("reset-btn").addEventListener("click", ()=>{
+  document.querySelectorAll('#filter-groups input[type="checkbox"]').forEach(cb=>cb.checked=false);
+  document.querySelectorAll('#filter-groups input[type="range"]').forEach(r=>{ r.value = r.defaultValue; r.dispatchEvent(new Event('input')); });
+  runMatch();
+});
+</script>
+</body>
+</html>

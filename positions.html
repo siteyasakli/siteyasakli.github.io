@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tüm Pozisyonlar — Uyum Rehberi</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="brand"><span class="mark"></span>Uyum Rehberi</a>
+  <nav class="nav-links" style="display:flex;align-items:center;gap:2px;">
+    <a href="one-cikanlar.html">Öne Çıkanlar</a>
+    <a href="top-10.html">Top 10</a>
+    <div class="nav-item">
+      <button class="nav-trigger">Pozisyon Stilleri <span class="chev-down">▾</span></button>
+      <div class="nav-dropdown">
+        <a href="/stil/erkek-uzerde/stil-erkek-uzerde.html">Erkek Üstte</a>
+        <a href="/stil/kadin-uzerde/stil-kadin-uzerde.html">Kadın Üstte</a>
+        <a href="/stil/arkadan/stil-arkadan.html">Arkadan</a>
+        <a href="/stil/oturarak-diz-cokerek/stil-oturarak-diz-cokerek.html">Oturarak &amp; Diz Çökerek</a>
+        <a href="/stil/yan-yana/stil-yan-yana.html">Yan Yana</a>
+        <a href="/stil/ayakta/stil-ayakta.html">Ayakta</a>
+        <a href="/stil/oral/stil-oral.html">Oral</a>
+        <a href="/stil/anal/stil-anal.html">Anal</a>
+      </div>
+    </div>
+    <a href="positions.html" class="active">Tüm Pozisyonlar</a>
+    <a href="match.html">Eşleştir</a>
+  </nav>
+  <div class="nav-right">
+    <button class="nav-search-btn" aria-label="Ara">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="page-wrap">
+  <div class="page-head">
+    <span class="eyebrow">67 pozisyon</span>
+    <h1>Tüm pozisyonlar</h1>
+    <p>Aşağı kaydırarak göz atın, bir başlığa tıklayarak o pozisyona ait bilgi sayfasını açın.</p>
+  </div>
+
+  <div class="toolbar">
+    <input type="search" id="search-box" placeholder="Pozisyon ara...">
+  </div>
+  <div class="chip-scroll" id="category-chips"></div>
+
+  <div class="grid-list" id="grid-list" style="margin-top:20px;"></div>
+</main>
+
+<div class="footnote">Uyum Rehberi — kişisel kullanım için hazırlanmış bir referans aracıdır.</div>
+
+<script src="data.js"></script>
+<script src="app-shared.js"></script>
+<script src="nav.js"></script>
+<script>
+const CATEGORY_LABELS = {
+  "Man on Top":"Erkek Üstte", "Woman on Top":"Kadın Üstte", "From Behind":"Arkadan",
+  "Sitting & Kneeling":"Oturarak & Diz Çökerek", "Sideways":"Yan Yana", "Standing":"Ayakta",
+  "Oral":"Oral", "Anal":"Anal", "Solo":"Solo"
+};
+const CATEGORY_ORDER = ["Man on Top","Woman on Top","From Behind","Sitting & Kneeling","Sideways","Standing","Oral","Anal","Solo"];
+
+const gridEl = document.getElementById("grid-list");
+const chipsEl = document.getElementById("category-chips");
+const searchEl = document.getElementById("search-box");
+
+const initialCategory = new URLSearchParams(location.search).get("category");
+let activeCategory = (initialCategory && CATEGORY_ORDER.includes(initialCategory)) ? initialCategory : "all";
+let searchTerm = "";
+
+function buildChips(){
+  const cats = ["all", ...CATEGORY_ORDER];
+  chipsEl.innerHTML = cats.map(c=>{
+    const label = c==="all" ? "Tümü" : CATEGORY_LABELS[c];
+    return `<button class="chip ${c===activeCategory?"active":""}" data-category="${c}">${label}</button>`;
+  }).join("");
+  chipsEl.querySelectorAll(".chip").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      activeCategory = btn.dataset.category;
+      buildChips();
+      renderGrid();
+    });
+  });
+}
+
+function renderGrid(){
+  const term = searchTerm.trim().toLowerCase();
+  const filtered = POSITIONS.filter(p=>{
+    const catOk = activeCategory==="all" || p.category===activeCategory;
+    const termOk = !term || p.name.toLowerCase().includes(term) || p.category.toLowerCase().includes(term);
+    return catOk && termOk;
+  });
+  if(filtered.length===0){
+    gridEl.innerHTML = `<div class="empty-state">Eşleşen pozisyon bulunamadı.</div>`;
+    return;
+  }
+  gridEl.innerHTML = filtered.map(p=>`
+    <a class="pos-card" href="positions/${slugify(p.name)}/${slugify(p.name)}.html">
+      <div class="ph-media ratio-4-3" data-label="${slugify(p.name)}">
+        <img class="position-image" style="object-fit: contain; width: 100%; height: 100%;" src="${p.photopath}" alt="${p.name}">
+        </div>
+      <div class="pos-card-body">
+        <span class="cat">${CATEGORY_LABELS[p.category]||p.category}</span>
+        <h3>${p.name}</h3>
+        <div class="mini-tags">
+          <span>${TR.enum.experience_level[p.experience_level]}</span>
+        </div>
+      </div>
+    </a>`).join("");
+}
+
+searchEl.addEventListener("input", (e)=>{ searchTerm = e.target.value; renderGrid(); });
+
+buildChips();
+renderGrid();
+</script>
+</body>
+</html>
