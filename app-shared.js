@@ -312,7 +312,7 @@ function runMatch(){
   const renderGroup = (title, cls, items)=>{
     if(items.length===0) return `<div class="result-group ${cls}"><h3><span class="dot"></span>${title} <span class="count">(0)</span></h3><div class="empty-state">Bu aralıkta pozisyon yok.</div></div>`;
     const cards = items.map(({pos,score})=>`
-      <a class="result-card" href="positions/${slugify(pos.name)}.html">
+      <a class="result-card" href="positions/${slugify(pos.name)}/${slugify(pos.name)}.html">
         <div class="rc-left">
           <div class="rc-name">${pos.name}</div>
           <div class="rc-cat">${pos.category}</div>
