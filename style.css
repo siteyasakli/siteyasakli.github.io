@@ -75,7 +75,11 @@ button{ font-family:inherit; cursor:pointer; }
   background:#FFFFFF;
   border-bottom:2px solid var(--accent);
 }
+.logo{
+  height: auto; width:500px;
+}
 .brand{
+  height: 1%; width: 5%;
   display:flex; align-items:center; gap:10px;
   font-family:var(--font-display); font-size:20px; font-weight:700; color:var(--text);
 }
