@@ -75,13 +75,22 @@ button{ font-family:inherit; cursor:pointer; }
   background:#FFFFFF;
   border-bottom:2px solid var(--accent);
 }
-.logo{
-  height: auto; width:500px;
-}
 .brand{
   height: 1%; width: 5%;
-  display:flex; align-items:center; gap:10px;
+  display:flex; align-items:center;
   font-family:var(--font-display); font-size:20px; font-weight:700; color:var(--text);
+}
+span{
+  margin: 0; padding: 0;
+}
+.logo.black{
+  color: black; 
+}
+.logo.red{
+  color: red;
+}
+.logo.grey{
+  color: silver;
 }
 .brand .mark{
   width:14px; height:14px; border-radius:50%;
